@@ -429,50 +429,50 @@ Result<compute::Expression> FromProto(const substrait::Expression& expr,
 
 namespace {
 struct UserDefinedLiteralToArrow {
+  Status CreateUnpackError(const std::string& literal_type,
+                           const std::string& value_type) {
+    return Status::Invalid("Failed to unpack user defined ", literal_type,
+                           " literal to ", value_type);
+  }
   Status Visit(const DataType& type) {
     return Status::NotImplemented("User defined literals of type ", type);
   }
   Status Visit(const IntegerType& type) {
     google::protobuf::UInt64Value value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined integer literal to UInt64Value");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("integer", "UInt64Value");
     }
     ARROW_ASSIGN_OR_RAISE(scalar_, MakeScalar(type.GetSharedPtr(), value.value()));
     return Status::OK();
   }
   Status Visit(const Time32Type& type) {
     google::protobuf::Int32Value value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined time32 literal to Int32Value");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("time32", "Int32Value");
     }
     ARROW_ASSIGN_OR_RAISE(scalar_, MakeScalar(type.GetSharedPtr(), value.value()));
     return Status::OK();
   }
   Status Visit(const Time64Type& type) {
     google::protobuf::Int64Value value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined time64 literal to Int64Value");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("time64", "Int64Value");
     }
     ARROW_ASSIGN_OR_RAISE(scalar_, MakeScalar(type.GetSharedPtr(), value.value()));
     return Status::OK();
   }
   Status Visit(const Date64Type& type) {
     google::protobuf::Int64Value value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined date64 literal to Int64Value");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("date64", "Int64Value");
     }
     ARROW_ASSIGN_OR_RAISE(scalar_, MakeScalar(type.GetSharedPtr(), value.value()));
     return Status::OK();
   }
   Status Visit(const HalfFloatType& type) {
     google::protobuf::UInt32Value value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined half_float literal to UInt32Value");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("half-float", "UInt32Value");
     }
     uint16_t half_float_value = value.value();
     ARROW_ASSIGN_OR_RAISE(scalar_, MakeScalar(type.GetSharedPtr(), half_float_value));
@@ -480,9 +480,8 @@ struct UserDefinedLiteralToArrow {
   }
   Status Visit(const LargeStringType& type) {
     google::protobuf::StringValue value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined large_string literal to StringValue");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("large_string", "StringValue");
     }
     ARROW_ASSIGN_OR_RAISE(scalar_,
                           MakeScalar(type.GetSharedPtr(), std::string(value.value())));
@@ -490,9 +489,8 @@ struct UserDefinedLiteralToArrow {
   }
   Status Visit(const LargeBinaryType& type) {
     google::protobuf::BytesValue value;
-    if (!user_defined_->value().UnpackTo(&value)) {
-      return Status::Invalid(
-          "Failed to unpack user defined large_binary literal to BytesValue");
+    if (ARROW_PREDICT_FALSE(!user_defined_->value().UnpackTo(&value))) {
+      return CreateUnpackError("large_binary", "BytesValue");
     }
     ARROW_ASSIGN_OR_RAISE(scalar_,
                           MakeScalar(type.GetSharedPtr(), std::string(value.value())));
